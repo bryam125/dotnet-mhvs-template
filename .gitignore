@@ -1,0 +1,39 @@
+## Build
+bin/
+obj/
+*.user
+
+## Credenciales locales — NUNCA se sube al repo
+config/connectionstrings.local.json
+config/secrets.local.json
+*.local.json
+.env
+.env.*
+
+## Certificados y claves privadas — NUNCA se suben al repo
+*.pfx
+*.pem
+*.key
+*.p12
+
+## Perfiles de publicación e infraestructura (pueden traer credenciales)
+*.pubxml
+*.tfvars
+
+## Bases de datos locales (pueden traer datos reales)
+*.mdf
+*.sqlite
+
+## IDE
+.vs/
+.idea/
+.vscode/
+*.suo
+
+## Resultados de tests y respaldos
+TestResults/
+*.bak
+
+## Logs generados en runtime
+logs/
+*.log

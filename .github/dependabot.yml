@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # .csproj de todo el repo (Bootstrap, Sample, Shared, Sample.Tests, Bootstrap.IntegrationTests):
+  # "/" cubre los .csproj de cualquier subcarpeta, no solo los de la raíz.
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Las actions que usa ci.yml (actions/checkout, actions/setup-dotnet). Van fijadas por SHA (ver
+  # ARCHITECTURE.md/CONTRIBUTING.md → "Actions fijadas por SHA"); Dependabot es quien propone el PR
+  # con el SHA nuevo cuando sale una versión, no se actualizan a mano.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

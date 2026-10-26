@@ -1,0 +1,79 @@
+# CODEOWNERS
+#
+# Cuenta personal (github.com/estebanSCO), no organización — por eso
+# se usan usernames individuales en vez de @org/equipo. Si en el
+# futuro este repo se mueve dentro de una organización con equipos
+# habilitados, esto se puede migrar a sintaxis de equipo sin cambiar
+# la estructura de rutas de abajo.
+#
+# Cada ruta listada aquí indica quién debería revisar un PR que la toque.
+# Hoy es un recordatorio visual, no un control: sin protección de rama
+# (requiere plan de pago en un repo privado) GitHub no exige esa revisión
+# (ver CONTRIBUTING.md → "CODEOWNERS — qué protege de verdad y qué no").
+#
+# TODO: agregar más usernames aquí cuando se sumen compañeros al
+# equipo. Mientras el repo tenga un solo colaborador activo, esta
+# protección es más un recordatorio que una barrera real (GitHub no
+# te deja auto-aprobar tu propio PR de todos modos si activas
+# "Require approvals" — ver CONTRIBUTING.md → "Revisión").
+
+# Arquitectura y convención del equipo — cambios aquí afectan a todos
+# los proyectos que nazcan de esta plantilla.
+/ARCHITECTURE.md            @estebanSCO
+/AGENTS.md                  @estebanSCO
+/.opencode/                 @estebanSCO
+/CONTRIBUTING.md            @estebanSCO
+/README.md                  @estebanSCO
+/ROADMAP.md                 @estebanSCO
+
+# CI/CD y automatización — cambios aquí pueden abrir o cerrar puertas
+# de seguridad (ej. relajar el linter, cambiar permisos de workflows).
+/.github/                   @estebanSCO
+/scripts/                   @estebanSCO
+
+# .githooks/ es la única protección técnica real del repo (bloquea push
+# directo a main/master; ver CONTRIBUTING.md → "Ramas"). Esta línea de
+# CODEOWNERS, en cambio, es solo un recordatorio visual, no una barrera
+# (ver CONTRIBUTING.md → "CODEOWNERS — qué protege de verdad y qué no").
+/.githooks/                 @estebanSCO
+
+# Configuración de credenciales — nadie debería tocar esto sin que un
+# segundo par de ojos confirme que no se filtró nada sensible. .gitignore va
+# con config/: es lo que impide commitear config/connectionstrings.local.json
+# (y otros *.local.json, .env, certificados y claves).
+/config/                    @estebanSCO
+/.gitignore                 @estebanSCO
+
+# Shared/ y Bootstrap/ — la convención de CONTRIBUTING.md es pedir 2
+# aprobaciones (no solo 1) para cambios aquí; hoy no se puede exigir (ver
+# CONTRIBUTING.md → "Revisión"). Afectan a todos los módulos por igual: un
+# error en Shared/Kernel o en el manejo global de excepciones de
+# Bootstrap/ se propaga a cada slice existente y futuro.
+/src/Shared/                @estebanSCO
+/src/Bootstrap/             @estebanSCO
+
+# Dockerfile, docker-compose.yml y .dockerignore — cambios aquí pueden
+# reintroducir credenciales de ejemplo con más permisos de los debidos,
+# exponer puertos de más, o romper silenciosamente el build de la imagen que
+# nadie corre automáticamente en CI todavía (ver ROADMAP.md). .dockerignore
+# saca del contexto de build, y por tanto de la imagen, bin/, obj/, logs/,
+# .git/ y config/connectionstrings.local.json / config/secrets.local.json.
+/Dockerfile                 @estebanSCO
+/docker-compose.yml         @estebanSCO
+/.dockerignore              @estebanSCO
+
+# Plantillas de documentación — cambios aquí afectan cómo se escriben
+# las HUs de todo el equipo de ahí en adelante.
+/docs/templates/            @estebanSCO
+
+# Build y SDK — Directory.Build.targets es lo que activa el hook de pre-push;
+# global.json fija el SDK; MyApp.slnx decide qué proyectos (y qué tests)
+# compila CI. Cambiarlos puede apagar una protección o sacar tests de CI sin
+# que nada más lo avise.
+/Directory.Build.targets    @estebanSCO
+/global.json                @estebanSCO
+/MyApp.slnx                 @estebanSCO
+
+# El propio CODEOWNERS — quien lo edita decide qué más se revisa. Va al final
+# por claridad; con un solo dueño en todas las rutas, el orden no cambia nada.
+/CODEOWNERS                 @estebanSCO

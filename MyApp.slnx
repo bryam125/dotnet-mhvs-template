@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/Bootstrap.IntegrationTests/Bootstrap.IntegrationTests.csproj" />
+  </Folder>
+  <Project Path="src/Bootstrap/Bootstrap.csproj" />
+  <Project Path="src/Modules/Sample/Sample.csproj" />
+  <Project Path="src/Modules/Tasks/Tasks.csproj" />
+  <Project Path="src/Shared/Shared.csproj" />
+  <Project Path="tests/Modules/Sample/Sample.Tests.csproj" />
+  <Project Path="tests/Modules/Tasks/Tasks.Tests.csproj" />
+</Solution>

@@ -1,0 +1,9 @@
+{
+  "ConnectionStrings": {
+    "Default": "Server=localhost;Database=MyAppDb;User Id=sa;Password=CAMBIA_ESTO;TrustServerCertificate=True;",
+    "MysqlTodo": "Server=localhost;Port=3306;Database=mhvs_todo;User=CAMBIA_ESTO;Password=CAMBIA_ESTO;"
+  },
+  "ExternalServices": {
+    "SomeApiKey": "CAMBIA_ESTO"
+  }
+}

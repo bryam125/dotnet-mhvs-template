@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+# Menor privilegio: este workflow solo lee el repo (checkout, restore, build, test) y no publica ni
+# escribe nada — nunca necesita más que contents: read. Ver CONTRIBUTING.md → "Actions fijadas por SHA".
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # El lint de HU necesita el commit base del PR para calcular qué archivos cambiaron.
+          fetch-depth: 0
+
+      # Validación estructural (sin IA) de las HU que cambian en el PR. Solo stdlib de Python 3,
+      # ya instalado en ubuntu-latest. Se calcula con git en vez de una action de terceros.
+      - name: Lint de historias de usuario (HU-*.md modificados en el PR)
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff --name-only -z --diff-filter=ACMR "$BASE_SHA" HEAD -- ':(glob)**/HU-*.md' > "$RUNNER_TEMP/hu-changed.list"
+          if [ ! -s "$RUNNER_TEMP/hu-changed.list" ]; then
+            echo "Ningún HU-*.md cambió en este PR; nada que validar."
+            exit 0
+          fi
+          xargs -0 python3 scripts/lint_hu.py < "$RUNNER_TEMP/hu-changed.list"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          # La versión del SDK sale de global.json (una sola fuente de verdad, sin duplicarla aquí).
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore MyApp.slnx
+
+      # dotnet list --vulnerable no falla el build por sí solo con vulnerabilidades encontradas
+      # (solo imprime texto); se captura la salida y se falla a mano si aparece la frase que indica
+      # que un proyecto tiene paquetes vulnerables. Dependabot (.github/dependabot.yml) es quien
+      # abre el PR con la actualización; este paso es la red que evita que algo vulnerable se
+      # mergee mientras tanto.
+      - name: Escaneo de vulnerabilidades en dependencias NuGet
+        run: |
+          dotnet list MyApp.slnx package --vulnerable --include-transitive | tee "$RUNNER_TEMP/vulnerable-packages.txt"
+          if grep -q "has the following vulnerable packages" "$RUNNER_TEMP/vulnerable-packages.txt"; then
+            echo "::error::Se encontraron paquetes NuGet con vulnerabilidades conocidas (ver el log de arriba)."
+            exit 1
+          fi
+
+      - name: Build
+        run: dotnet build MyApp.slnx --no-restore --configuration Release
+
+      # Unitarios: toda la solución excepto la integración de Bootstrap. Un proyecto de tests de un
+      # módulo nuevo entra aquí automáticamente por estar en el .slnx.
+      - name: Test (unitarios)
+        run: dotnet test MyApp.slnx --no-build --configuration Release --verbosity normal --filter "FullyQualifiedName!~MyApp.Tests.Bootstrap"
+
+      # Integración de Bootstrap: levanta la app real en memoria (sin BD ni red externa) y verifica el
+      # contrato HTTP, el arranque sin errores y el X-Correlation-ID.
+      - name: Test (integración de Bootstrap)
+        run: dotnet test tests/Bootstrap.IntegrationTests/Bootstrap.IntegrationTests.csproj --no-build --configuration Release --verbosity normal

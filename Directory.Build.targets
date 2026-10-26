@@ -1,0 +1,51 @@
+<Project>
+
+  <!--
+    Activa el hook de pre-push (git config core.hooksPath .githooks) en el primer build local de
+    cualquier proyecto de la solución, sin que haga falta el paso manual de "Primeros pasos al
+    clonar" del README — hoy nadie está obligado a correrlo, y si no lo hace, el repo se queda sin
+    su única protección técnica real contra push directo a main/master, sin que nada lo avise
+    (ver ROADMAP.md, hallazgo 1.2).
+
+    MSBuild importa este archivo automáticamente para cada proyecto de la solución (los 7 de
+    MyApp.slnx: Bootstrap, Sample, Tasks, Shared y los tres proyectos de tests) con solo existir en la raíz del repo:
+    no hace falta referenciarlo desde ningún .csproj. Por eso el target puede ejecutarse varias
+    veces en un solo "dotnet build MyApp.slnx" (una por proyecto) — es intencionalmente idempotente
+    y silencioso salvo la primera vez que de verdad activa algo.
+
+    No hace nada:
+    - En CI (variables CI o GITHUB_ACTIONS en "true"): un runner efímero no necesita el hook, y
+      forzarlo ahí no protege nada — la protección real de CI es el workflow mismo.
+    - Sin repo git (por ejemplo, alguien descargó un .zip del código en vez de clonar).
+    - Si core.hooksPath YA tiene cualquier valor: nunca lo sobreescribe. Si alguien lo configuró a
+      otra ruta a propósito (por ejemplo, para usar sus propios hooks locales además de estos), esa
+      decisión se respeta. Esto también es lo que lo hace idempotente entre los distintos proyectos
+      del build: en cuanto el primero lo configura, los demás lo detectan ya configurado y no hacen
+      nada más que la comprobación (barata) — solo el primero imprime el mensaje.
+  -->
+  <Target Name="MhvsActivarHookDePrePush"
+          BeforeTargets="Build"
+          Condition="'$(CI)' != 'true' AND '$(GITHUB_ACTIONS)' != 'true' AND Exists('$(MSBuildThisFileDirectory).git')">
+
+    <Exec Command="git config --get core.hooksPath"
+          IgnoreExitCode="true"
+          StandardOutputImportance="low"
+          StandardErrorImportance="low"
+          WorkingDirectory="$(MSBuildThisFileDirectory)">
+      <Output TaskParameter="ExitCode" PropertyName="_MhvsHooksPathExitCode" />
+    </Exec>
+
+    <!-- El comando de arriba sale con 0 si la clave YA tiene un valor (cualquiera), y con 1 si no
+         está configurada. No necesitamos saber el valor, solo si ya existe uno. -->
+    <Exec Command="git config core.hooksPath .githooks"
+          Condition="'$(_MhvsHooksPathExitCode)' != '0'"
+          WorkingDirectory="$(MSBuildThisFileDirectory)"
+          ContinueOnError="WarnAndContinue" />
+
+    <Message Importance="high"
+              Condition="'$(_MhvsHooksPathExitCode)' != '0'"
+              Text="MHVS: activado el hook de pre-push (git config core.hooksPath .githooks) — bloquea push directo a main/master. Ver CONTRIBUTING.md &#8594; &quot;Ramas&quot;." />
+
+  </Target>
+
+</Project>

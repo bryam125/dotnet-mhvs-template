@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+.vs/
+.git/
+logs/
+config/connectionstrings.local.json
+config/secrets.local.json
+*.local.json
